@@ -71,9 +71,9 @@ h1{font-size:42px}
     <p class="tagline">带你走遍中国的每一个地方，看遍中国的大好河山</p>
     <p class="subtag">1:1 真实中国地图 · MMO 开放世界</p>
     <div class="cta">
-      <a href="./mmo.html" class="btn btn-primary">💬 微信登录开始游戏</a>
-      <a href="./mmo.html" class="btn btn-secondary">🐧 QQ登录开始游戏</a>
-      <a href="#about" class="btn btn-tertiary">了解更多 →</a>
+      <a href="#about" class="btn btn-primary">✨ 了解遗梦</a>
+      <a href="#screenshots" class="btn btn-secondary">🎬 游戏画面</a>
+      <a href="#about" class="btn btn-tertiary">探索中国 →</a>
     </div>
   </section>
 
@@ -129,6 +129,16 @@ h1{font-size:42px}
     </div>
   </section>
 
+  <section id="screenshots">
+    <h2 class="section-title">游戏画面</h2>
+    <div class="screenshots">
+      <div class="shot" data-label="1:1 中国地图 · 从高原到平原">🏔️</div>
+      <div class="shot" data-label="登录界面 · 星空下的中国">🌟</div>
+      <div class="shot" data-label="现实职业 · 百味人生模拟">🏙️</div>
+      <div class="shot" data-label="城市漫游 · 穿梭于十大城市">🚇</div>
+    </div>
+  </section>
+
   <section>
     <h2 class="section-title">关于遗梦</h2>
     <div class="about" id="about">
@@ -143,11 +153,10 @@ h1{font-size:42px}
   <div class="footer">
     <p>© 2026 遗梦开发团队 · 1:1 中国地图 MMO 开放世界</p>
     <p style="margin-top:8px">
-      <a href="./mmo.html">开始游戏</a>·
       <a href="#about">关于</a>·
-      <a href="mailto:contact@yimeng.game">联系我们</a>
+      <a href="privacy.html">隐私政策</a>·
+      <a href="terms.html">用户协议</a>
     </p>
-    <p style="margin-top:16px;opacity:.4">ICP备案号待补充 · 本游戏纯属虚构 · 场景数据来源于公开地理信息</p>
   </div>
 </div>
 
@@ -166,7 +175,7 @@ for(let i=0;i<80;i++){
 // 城市点击
 document.querySelectorAll('.city').forEach(c=>{
   c.addEventListener('click',()=>{
-    location.href='./mmo.html?city='+encodeURIComponent(c.querySelector('.name').textContent);
+    alert('即将开放：'+c.querySelector('.name').textContent+'，敬请期待！');
   });
 });
 </script>

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a1a">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>遗梦 · 1:1中国地图MMO</title>
+<script>
+// 全局错误捕获：把任何 JS 报错显示在屏幕底部，避免"卡住打不开"却无任何提示
+window.__hxErr=function(m){
+  var b=document.getElementById('hxErrBox');
+  if(!b){b=document.createElement('div');b.id='hxErrBox';
+    b.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:99999;max-height:46vh;overflow:auto;background:rgba(140,0,0,.94);color:#fff;font:12px/1.5 monospace;padding:10px;white-space:pre-wrap;box-shadow:0 -4px 20px rgba(0,0,0,.5);cursor:pointer';
+    b.title='点击关闭';
+    b.onclick=function(){this.style.display='none'};
+    (document.body||document.documentElement).appendChild(b);}
+  b.textContent+='\n[错误] '+m;
+  console.error('[__hxErr]',m);
+};
+window.addEventListener('error',function(e){
+  var msg=(e.error&&e.error.stack)||e.message||String(e);
+  // 跨域错误只显示"Script error"，手动附加 filename/lineno/colno
+  if(msg==='Script error'||msg==='Script Error'||!msg){
+    msg='Script error at '+(e.filename||'?')+':'+(e.lineno||'?')+':'+(e.colno||'?')+' (跨域脚本，详见浏览器F12控制台)';
+  }
+  window.__hxErr(msg);
+});
+window.addEventListener('unhandledrejection',function(e){
+  var r=e.reason;
+  var msg=(r&&r.stack)||(r&&r.message)||String(r);
+  window.__hxErr('Promise: '+msg);
+});
+// 调试用：暴露到控制台
+console.log('遗梦 错误捕获已启动，__hxErr 函数已就绪');
+</script>
+<!-- 横屏提示 -->
+<style id="landscapeTip">/* 手机横屏建议：仅底部提示条，不再强制遮挡，登录/游戏在竖屏也可用 */
+#landTip{display:none;position:fixed;left:0;right:0;bottom:0;z-index:150;background:linear-gradient(0deg,rgba(0,0,0,.92),rgba(0,0,0,.55));color:#ffd700;align-items:center;justify-content:center;flex-direction:column;font-size:13px;padding:12px 16px;cursor:pointer;backdrop-filter:blur(4px)}#landTip .icon{font-size:28px;animation:rot 2s infinite;margin-bottom:2px}#landTip .x{position:absolute;right:14px;top:50%;transform:translateY(-50%);opacity:.6;font-size:18px}@keyframes rot{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}@media(orientation:portrait) and (max-width:1024px){#landTip{display:flex}}@media(orientation:landscape),(min-width:1025px){#landTip{display:none!important}}</style>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;touch-action:none;user-select:none}
+body{overflow:hidden;background:#000;font-family:'Microsoft YaHei',sans-serif}
+#c{display:block;position:fixed;top:0;left:0;width:100%;height:100%}
+
+/* 加载界面 */
+#ld{position:fixed;inset:0;z-index:200;background:linear-gradient(135deg,#0a0a1a,#1a1a3a);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;transition:opacity .5s}
+#ld.hide{opacity:0;pointer-events:none}
+#ld h2{font-size:28px;margin-bottom:8px;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+#ld .sub{font-size:13px;opacity:.6;margin-bottom:24px;letter-spacing:2px}
+#lF{width:240px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:12px}
+#lT{font-size:12px;opacity:.5}
+
+/* HUD */
+#hud{position:fixed;top:12px;left:12px;z-index:10;pointer-events:none}
+#hpBar,#spBar{width:160px;height:14px;background:rgba(0,0,0,.5);border-radius:7px;margin-bottom:4px;overflow:hidden;border:1px solid rgba(255,255,255,.15)}
+#hpB{height:100%;width:100%;background:linear-gradient(90deg,#ff4444,#ff6666);border-radius:7px;transition:width .3s}
+#spB{height:100%;width:100%;background:linear-gradient(90deg,#44aaff,#66ccff);border-radius:7px;transition:width .3s}
+#hpT,#spT{position:absolute;width:100%;text-align:center;font-size:9px;color:#fff;line-height:14px;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+#hpBar,#spBar{position:relative}
+#cT{font-size:14px;color:#ffd700;text-shadow:0 1px 4px rgba(0,0,0,.8);margin-top:4px}
+#gT{font-size:10px;color:rgba(255,255,255,.6)}
+#tT{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+
+/* 小地图 */
+#mm{position:fixed;top:12px;right:12px;z-index:10;border-radius:8px;overflow:hidden;border:2px solid rgba(255,255,255,.2);box-shadow:0 2px 12px rgba(0,0,0,.5)}
+#mc{display:block}
+
+/* 任务列表 */
+#qL{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10;pointer-events:none}
+.qi{font-size:11px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);margin-bottom:2px;text-align:center}
+.qp{color:#ffd700;font-size:10px}
+
+/* 互动提示 */
+#iP{position:fixed;bottom:140px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(0,0,0,.6);color:#ffd700;padding:6px 16px;border-radius:16px;font-size:12px;display:none;border:1px solid rgba(255,215,0,.3)}
+
+/* 摇杆 */
+#jA{position:fixed;bottom:30px;left:30px;z-index:20;width:120px;height:120px}
+#jB{width:100%;height:100%;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15)}
+#jT{position:absolute;top:50%;left:50%;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.4);transform:translate(-50%,-50%);pointer-events:none}
+
+/* 动作按钮 */
+.ab{position:fixed;z-index:20;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:bold;text-shadow:0 1px 2px rgba(0,0,0,.5);cursor:pointer}
+#bS{bottom:60px;right:30px;width:56px;height:56px;background:rgba(255,100,50,.35);border:2px solid rgba(255,100,50,.5)}
+#bJ{bottom:130px;right:30px;width:56px;height:56px;background:rgba(50,150,255,.35);border:2px solid rgba(50,150,255,.5)}
+#bI{bottom:60px;right:100px;width:50px;height:50px;background:rgba(255,215,0,.35);border:2px solid rgba(255,215,0,.5);font-size:10px}
+#bB{bottom:130px;right:100px;width:44px;height:44px;background:rgba(100,200,100,.3);border:2px solid rgba(100,200,100,.4);font-size:10px}
+#bF{bottom:190px;right:30px;width:44px;height:44px;background:rgba(200,100,255,.3);border:2px solid rgba(200,100,255,.4);font-size:10px}
+#bV{bottom:60px;right:170px;width:50px;height:50px;background:rgba(120,200,255,.32);border:2px solid rgba(120,200,255,.5);font-size:12px}
+#bM{bottom:130px;right:170px;width:50px;height:50px;background:rgba(0,200,255,.32);border:2px solid rgba(0,200,255,.5);font-size:11px}
+#bC2{bottom:200px;right:100px;width:44px;height:44px;background:rgba(255,170,0,.32);border:2px solid rgba(255,170,0,.5);font-size:11px}
+#bCh{bottom:200px;right:30px;width:44px;height:44px;background:rgba(255,80,200,.32);border:2px solid rgba(255,80,200,.5);font-size:12px}
+#bA{bottom:60px;right:250px;width:50px;height:50px;background:rgba(255,60,60,.35);border:2px solid rgba(255,60,60,.55);font-size:12px}
+#bR{bottom:60px;right:228px;width:50px;height:50px;background:rgba(255,215,0,.35);border:2px solid rgba(255,215,0,.6);font-size:18px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+#bPer{bottom:200px;right:170px;width:44px;height:44px;background:rgba(120,255,200,.3);border:2px solid rgba(120,255,200,.45);font-size:12px}
+#bSv{bottom:260px;right:30px;width:44px;height:44px;background:rgba(80,180,255,.32);border:2px solid rgba(80,180,255,.5);font-size:11px}
+#bC{display:none}
+#fC{display:none}
+
+/* 街景面板 */
+#svP{position:fixed;inset:0;z-index:90;display:none;flex-direction:column;background:#000}
+#svHead{display:flex;align-items:center;gap:12px;padding:8px 14px;background:rgba(10,15,25,.92);color:#fff;font-size:13px;border-bottom:1px solid rgba(255,255,255,.1)}
+#svHead .svT{color:#ffd700;font-weight:bold}
+#svLoc{color:#8fd3ff;font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#svAk{cursor:pointer;font-size:11px;opacity:.75;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:3px 8px}
+#svAk:hover{opacity:1}
+#svClose{cursor:pointer;font-size:18px;opacity:.7;padding:0 4px}
+#svClose:hover{opacity:1}
+#svPano{flex:1;position:relative}
+#svHint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;color:#fff;font-size:14px;text-align:center;line-height:1.8;background:rgba(0,0,0,.6);padding:14px 22px;border-radius:12px;display:none;max-width:80vw}
+#svHint a{color:#4db8ff}
+
+/* 地图切换 */
+#mtB{position:fixed;top:12px;right:160px;z-index:10;background:rgba(0,0,0,.5);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer}
+
+/* 通缉 / 监狱 / 倒地 */
+#wanted{font-size:13px;color:#ffd700;text-shadow:0 1px 2px #000;font-weight:bold;min-height:16px}
+#jailP,#downP{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.72);color:#fff}
+#jailP .jb,#downP .db{font-size:18px;text-align:center;line-height:1.8;padding:0 20px}
+#jailP .je,#downP .de{font-size:48px;margin-bottom:10px}
+
+/* ===== 登录界面 - 模仿王者荣耀/和平精英风格 ===== */
+#loginP{position:fixed;inset:0;z-index:300;background:linear-gradient(180deg,#050510 0%,#0d1025 40%,#131840 70%,#0a0a1a 100%);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;overflow:hidden}
+#loginP .loginBgFx{position:absolute;inset:0;overflow:hidden;z-index:0}
+#loginP .loginBgFx .bgStar{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0;animation:starTwinkle 3s infinite}
+@keyframes starTwinkle{0%,100%{opacity:0}50%{opacity:.6}}
+.loginMain{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:340px;max-width:92vw}
+.loginLogo{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,#ffd700,#ff8c00);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:14px;box-shadow:0 4px 24px rgba(255,215,0,.3)}
+.loginAppName{font-size:30px;font-weight:bold;text-align:center;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.3}
+.loginAppSub{font-size:12px;text-align:center;opacity:.5;margin:6px 0 28px;letter-spacing:3px}
+.loginBtnGroup{width:100%;display:flex;flex-direction:column;gap:14px}
+.loginBtn{width:100%;padding:14px 0;border:none;border-radius:24px;font-size:15px;font-weight:bold;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:1px;transition:transform .1s,box-shadow .2s;position:relative;overflow:hidden}
+.loginBtn:hover{transform:scale(1.02);filter:brightness(1.1)}
+.loginBtn:active{transform:scale(.97)}
+.loginBtn .lbIcon{font-size:20px;display:flex;align-items:center;justify-content:center}
+.loginBtn .lbText{font-size:15px;font-weight:bold}
+.loginBtn.wxBtn{background:linear-gradient(135deg,#07c160,#1aad19);box-shadow:0 4px 16px rgba(7,193,96,.35)}
+.loginBtn.qqBtn{background:linear-gradient(135deg,#12b7f5,#0ea0e9);box-shadow:0 4px 16px rgba(18,183,245,.35)}
+.loginBtn.appleBtn{background:linear-gradient(135deg,#333,#1a1a1a);box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.loginGuestRow{width:100%;display:flex;justify-content:center;margin-top:16px}
+.loginGuest{font-size:12px;color:rgba(255,255,255,.55);cursor:pointer;padding:8px 16px;border-radius:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);transition:background .2s}
+.loginGuest:hover{background:rgba(255,255,255,.15);color:rgba(255,255,255,.8)}
+.loginAccs{margin-top:18px;width:100%;display:flex;flex-direction:column;gap:8px}
+.loginAccRow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;font-size:13px;cursor:pointer;transition:background .2s}
+.loginAccRow:hover{background:rgba(255,255,255,.12)}
+.loginAccRow .lae{font-size:22px}.loginAccRow .lai{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loginTip{text-align:center;font-size:12px;color:#ffd700;margin-top:14px;opacity:.8;line-height:1.5}
+
+/* OAuth 授权弹窗 - 模仿微信/QQ真实授权页 */
+#oauthP{position:fixed;inset:0;z-index:320;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+#oauthP.show{display:flex}
+.oaCard{width:320px;max-width:92vw;background:#fff;color:#222;border-radius:16px;padding:0;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.6);overflow:hidden;animation:oaSlideUp .3s ease}
+@keyframes oaSlideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.oaHeader{padding:20px 22px 12px;display:flex;flex-direction:column;align-items:center}
+.oaLogo{width:52px;height:52px;border-radius:14px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;font-weight:bold;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.oaAppName{font-size:16px;font-weight:bold;color:#222;margin-bottom:2px}
+.oaAuthTip{font-size:13px;color:#888;margin-bottom:4px}
+.oaDivider{height:1px;background:#eee;margin:0}
+.oaBody{padding:16px 22px}
+.oaQR{width:160px;height:160px;margin:10px auto;border-radius:8px;border:2px solid #eee;background:#f5f5f5;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.oaQR canvas{width:100%;height:100%}
+.oaQRText{font-size:11px;color:#999;margin-top:8px;text-align:center;line-height:1.5}
+.oaScanning{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:#fff}
+.oaScanning.show{display:flex}
+.oaScanLine{width:120px;height:2px;background:#ffd700;margin-top:10px;animation:oaScanMove 1.2s ease-in-out infinite}
+@keyframes oaScanMove{0%{transform:translateY(-50px)}50%{transform:translateY(50px)}100%{transform:translateY(-50px)}}
+.oaScanProgress{width:80%;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin-top:12px;overflow:hidden}
+.oaScanBar{height:100%;background:#ffd700;border-radius:2px;width:0;transition:width .3s}
+.oaScanText{font-size:12px;color:#ffd700;margin-top:6px}
+.oaFooter{display:flex;gap:0;border-top:1px solid #eee}
+.oaCard .oaBtn{flex:1;padding:14px 0;border:none;border-radius:0;font-size:14px;cursor:pointer;background:transparent;font-weight:bold}
+.oaBtn.oaCancel{color:#888;border-right:1px solid #eee}
+.oaBtn.oaConfirm{color:#07c160}
+.oaBtn:hover{background:rgba(0,0,0,.04)}
+
+/* ===== 人物模块 / 角色创建 (§7) ===== */
+#charP{position:fixed;inset:0;z-index:300;background:linear-gradient(135deg,#0a0a1a,#1a1a3a);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;padding:16px}
+#charP.show{display:flex}
+.chHead{font-size:18px;color:#ffd700;font-weight:bold;margin-bottom:12px}
+.chBody{display:flex;gap:16px;align-items:center;width:640px;max-width:94vw}
+#chrC{background:rgba(0,0,0,.3);border-radius:12px;border:1px solid rgba(255,255,255,.12);flex-shrink:0}
+.chCtl{flex:1;max-height:70vh;overflow-y:auto;min-width:0}
+.chTabs{display:flex;gap:6px;margin:10px 0}
+.chTabs .ct{flex:1;text-align:center;font-size:12px;padding:6px 0;border-radius:8px;cursor:pointer;opacity:.6;background:rgba(255,255,255,.06)}
+.chTabs .ct.on{opacity:1;background:rgba(255,215,0,.18);color:#ffd700}
+.chB .fg h4{font-size:13px;color:#ffd700;margin:8px 0 6px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:4px}
+.chFoot{margin-top:14px;display:flex;gap:10px}
+.cb2{padding:10px 16px;border-radius:10px;font-size:13px;cursor:pointer;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15)}
+.cb2.go{background:linear-gradient(90deg,#ffd700,#ff8c00);color:#1a1a1a;font-weight:bold;border:none}
+.gSel{font-size:12px;padding:6px 16px;border-radius:8px;cursor:pointer;opacity:.5;background:rgba(255,255,255,.08)}
+.gSel.on{opacity:1;background:rgba(255,215,0,.2);color:#ffd700}
+
+/* 拍照生成弹窗 */
+#photoP{position:fixed;inset:0;z-index:310;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+#photoP.show{display:flex}
+.photoBox{width:320px;max-width:90vw;text-align:center}
+#photoVideo{width:280px;height:280px;max-width:80vw;max-height:80vw;border-radius:16px;border:2px solid rgba(255,215,0,.4);object-fit:cover;background:#000}
+#photoCapCanvas{display:none}
+.photoHint{font-size:13px;color:#ffd700;margin:12px 0;opacity:.8}
+.photoBtns{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.photoBtns .pb{padding:10px 20px;border-radius:10px;font-size:13px;cursor:pointer;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15)}
+.photoBtns .pb.snap{background:linear-gradient(90deg,#ffd700,#ff8c00);color:#1a1a1a;font-weight:bold;border:none}
+.photoBtns .pb:disabled{opacity:.4;cursor:not-allowed}
+.scanOverlay{position:absolute;top:0;left:0;width:280px;height:280px;max-width:80vw;max-height:80vw;border-radius:16px;overflow:hidden;pointer-events:none}
+.scanLine{position:absolute;left:5%;width:90%;height:2px;background:linear-gradient(90deg,transparent,#07c160,transparent);animation:scanY 2s linear infinite;opacity:.8}
+@keyframes scanY{0%{top:5%}100%{top:95%}}
+.scanCorners{position:absolute;inset:8px;border:2px solid rgba(7,193,96,.6);border-radius:8px}
+.scanCorner{position:absolute;width:16px;height:16px;border-color:#07c160;border-style:solid;border-width:0}
+.scanCorner.tl{top:0;left:0;border-top-width:2px;border-left-width:2px}
+.scanCorner.tr{top:0;right:0;border-top-width:2px;border-right-width:2px}
+.scanCorner.bl{bottom:0;left:0;border-bottom-width:2px;border-left-width:2px}
+.scanCorner.br{bottom:0;right:0;border-bottom-width:2px;border-right-width:2px}
+.photoResult{margin-top:16px;padding:16px;background:rgba(255,255,255,.06);border-radius:12px;border:1px solid rgba(255,215,0,.2)}
+.photoResult h4{color:#ffd700;margin-bottom:8px;font-size:14px}
+.photoResult .prRow{display:flex;justify-content:space-between;font-size:12px;margin:4px 0;opacity:.8}
+
+/* 游戏内人物面板 */
+#perP{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,215,0,.3);border-radius:14px;padding:18px;width:300px;max-width:90vw;color:#fff;display:none}
+#perP.show{display:block}
+.perRow{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:6px}
+.perRow b{color:#ffd700;font-weight:normal}
+#perP .pbtn{display:inline-block;margin:10px 8px 0 0;background:rgba(255,215,0,.2);border:1px solid rgba(255,215,0,.4);color:#ffd700;padding:7px 16px;border-radius:9px;font-size:12px;cursor:pointer}
+
+#nmT{font-size:11px;color:rgba(255,255,255,.8);margin-top:2px}
+
+/* Toast */
+#tst{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;background:rgba(0,0,0,.75);color:#fff;padding:10px 24px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none}
+#tst.show{opacity:1}
+
+/* 对话框 */
+#dO{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
+#dO.show{display:flex}
+#dI{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:20px;width:300px;max-width:90vw;color:#fff}
+#dA{font-size:48px;text-align:center;margin-bottom:8px}
+#dN{font-size:16px;font-weight:bold;color:#ffd700;text-align:center}
+#dJ{font-size:11px;color:rgba(255,255,255,.5);text-align:center;margin:4px 0 12px}
+#dT{font-size:13px;color:rgba(255,255,255,.85);text-align:center;margin-bottom:16px;font-style:italic;line-height:1.5}
+#dOs{display:flex;flex-direction:column;gap:6px}
+.do{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px;text-align:center;font-size:13px;cursor:pointer;transition:background .2s}
+.do:hover{background:rgba(255,255,255,.15)}
+
+/* 背包面板 */
+#bagP{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:50;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:16px;width:320px;max-width:90vw;color:#fff;display:none}
+#bagP.show{display:block}
+#bagB{margin-top:8px}
+
+/* 捏脸面板 */
+#faceP{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:50;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:16px;width:340px;max-width:90vw;max-height:80vh;overflow-y:auto;color:#fff;display:none}
+#faceP.show{display:block}
+.fg{margin-bottom:12px}
+.fg h4{font-size:13px;color:#ffd700;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:4px}
+.fr{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:11px}
+.fr label{width:50px;color:rgba(255,255,255,.7);flex-shrink:0}
+.fr input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:rgba(255,255,255,.15);border-radius:2px;outline:none}
+.fr input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#ffd700;cursor:pointer}
+.fr .v{width:32px;text-align:right;color:#ffd700;font-size:10px}
+
+/* 职业选择 */
+#classP{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,215,0,.3);border-radius:14px;padding:18px;width:340px;max-width:92vw;color:#fff;display:none}
+#classP.show{display:block}
+#classP h3{font-size:16px;color:#ffd700;margin-bottom:4px;text-align:center}
+#classP .sub{font-size:11px;opacity:.6;text-align:center;margin-bottom:12px}
+.cls{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;margin-bottom:8px;cursor:pointer;transition:.2s}
+.cls:hover{background:rgba(255,255,255,.12)}
+.cls.sel{border-color:#ffd700;background:rgba(255,215,0,.12)}
+.cls .ce{font-size:30px}
+.cls .ci{flex:1}
+.cls .cn{font-size:14px;font-weight:bold}
+.cls .cd{font-size:10px;opacity:.7;margin-top:2px}
+.cls .cb{font-size:10px;color:#0df;margin-top:3px}
+
+/* 聊天面板 */
+#chatP{position:fixed;left:12px;bottom:12px;z-index:30;width:300px;max-width:70vw;background:rgba(10,10,25,.82);border:1px solid rgba(255,255,255,.12);border-radius:12px;display:none;flex-direction:column;overflow:hidden;color:#fff}
+#chatP.show{display:flex}
+#chatH{display:flex;gap:6px;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.1)}
+.ctab{font-size:11px;padding:3px 8px;border-radius:10px;cursor:pointer;opacity:.6;background:rgba(255,255,255,.06)}
+.ctab.on{opacity:1;background:rgba(255,215,0,.18);color:#ffd700}
+#chatL{flex:1;max-height:200px;overflow-y:auto;padding:6px 8px;font-size:12px;line-height:1.5}
+.cl{margin-bottom:3px}
+.cl .cn{font-weight:bold}
+.cl .cn.near{color:#6cf}
+.cl .cn.world{color:#f9f}
+.cl .cn.sys{color:#ffd700}
+.cl .cn.shop{color:#0df}
+.cl .ct{opacity:.9}
+#chatI{flex:1;border:none;background:rgba(0,0,0,.4);color:#fff;padding:8px;font-size:12px;outline:none}
+#chatSend{flex-shrink:0;border:none;background:rgba(255,215,0,.25);color:#ffd700;padding:0 14px;font-size:12px;cursor:pointer}
+
+/* 商店面板 */
+#shopP{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:55;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(0,221,255,.3);border-radius:14px;padding:16px;width:340px;max-width:92vw;max-height:82vh;overflow-y:auto;color:#fff;display:none}
+#shopP.show{display:block}
+#shopP h3{font-size:15px;color:#0df;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center}
+#shopP .sbal{font-size:11px;color:#ffd700;margin-bottom:10px}
+.srow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px;margin-bottom:6px}
+.srow .si{font-size:22px}
+.srow .sinfo{flex:1}
+.srow .sn{font-size:12px}
+.srow .sp{font-size:11px;color:#ffd700;margin-top:1px}
+.srow .sact{display:flex;gap:5px}
+.sbtn{font-size:11px;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;color:#fff}
+.sbtn.buy{background:rgba(50,200,100,.35);border:1px solid rgba(50,200,100,.5)}
+.sbtn.sell{background:rgba(200,100,50,.35);border:1px solid rgba(200,100,50,.5)}
+.sbtn.work{background:rgba(255,215,0,.3);border:1px solid rgba(255,215,0,.5)}
+
+/* 充值面板 */
+#rechargeP{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:56;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,215,0,.4);border-radius:14px;padding:18px;width:360px;max-width:93vw;max-height:80vh;overflow-y:auto;color:#fff;display:none}
+#rechargeP.show{display:block}
+/* 账号过期弹窗 */
+#expireP{position:fixed;inset:0;z-index:340;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center}
+#expireP .exCard{width:320px;max-width:90vw;background:linear-gradient(135deg,#2a1530,#1a0a2e);border:1px solid rgba(255,80,120,.4);border-radius:16px;padding:24px;color:#fff;text-align:center;box-shadow:0 10px 50px rgba(0,0,0,.6)}
+#expireP .exIco{font-size:48px}
+#expireP .exT{font-size:18px;font-weight:bold;color:#ff6b8a;margin:8px 0 6px}
+#expireP .exD{font-size:13px;opacity:.8;line-height:1.6;margin-bottom:18px}
+#expireP .exBtn{display:block;width:100%;padding:11px;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;margin-bottom:10px;border:1px solid transparent}
+#expireP .exRenew{background:linear-gradient(135deg,#ffd700,#ff8c00);color:#3a1a00}
+#expireP .exFree{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2);color:#fff}
+.rcTop{font-size:14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.rci{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.rci:hover{border-color:rgba(255,215,0,.6)}
+.rci .ramt{font-size:18px;font-weight:bold;color:#ffd700;min-width:50px}
+.rci .rgold{font-size:13px;color:#0df;min-width:70px}
+.rci .rdsc{flex:1;font-size:11px;opacity:.7}
+.rci .rcbtn{font-size:12px;background:rgba(255,215,0,.25);border:1px solid rgba(255,215,0,.5);color:#ffd700;padding:6px 14px;border-radius:7px;cursor:pointer;white-space:nowrap}
+
+/* 载具面板 */
+#vehicleP{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:55;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(0,221,255,.3);border-radius:14px;padding:16px;width:340px;max-width:92vw;max-height:82vh;overflow-y:auto;color:#fff;display:none}
+#vehicleP.show{display:block}
+.vehRow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;margin-bottom:6px}
+.vehRow .vhI{font-size:28px}
+.vehRow .vhN{font-size:13px;font-weight:bold}
+.vehRow .vhS{font-size:11px;opacity:.6}
+.vehRow .vhR{font-size:11px;background:rgba(0,221,255,.2);border:1px solid rgba(0,221,255,.4);color:#0df;padding:5px 10px;border-radius:6px;cursor:pointer;margin-left:auto;white-space:nowrap}
+.vehEmpty{text-align:center;padding:30px;opacity:.5;font-size:13px}
+
+/* ====== 📱 移动端响应式 ====== */
+@media (max-width:768px) and (orientation:landscape){
+  ::-webkit-scrollbar{width:3px}
+  /* 缩小HUD */
+  #hud{top:4px;right:6px;font-size:10px;gap:2px}
+  #hud>*{padding:1px 5px}
+  #hpBar,#spBar{width:80px;height:8px}
+  /* 缩小动作按钮 */
+  .ab{width:40px;height:40px;font-size:10px;border-radius:10px;margin:2px}
+  #bS,#bJ,#bI,#bB,#bF,#bV,#bM,#bC2,#bCh,#bPer,#bA,#bSv{bottom:6px}
+#bS{bottom:80px;right:100px}
+#bJ{bottom:80px;right:50px}
+#bI{bottom:80px;right:0px}
+#bB{bottom:42px;right:100px}
+#bF{bottom:42px;right:50px}
+#bV{bottom:42px;right:0px}
+#bM{bottom:4px;right:100px}
+#bC2{bottom:4px;right:50px}
+#bCh{bottom:4px;right:0px}
+#bPer{right:100px;bottom:120px}
+#bA{right:50px;bottom:120px}
+#bR{right:0px;bottom:120px}
+#bSv{right:0px;bottom:158px}
+  /* 地图切换按钮 */
+  #mtB{top:4px;right:4px;font-size:10px;padding:4px 10px}
+  /* 摇杆缩小 */
+  #jA{width:110px;height:110px}
+  #jB{width:44px;height:44px}
+  /* 面板小屏适配 */
+  #shopP,#vehicleP,#rechargeP,#bagP,#faceP,#classP,#perP{width:92vw;max-height:78vh;padding:12px}
+  #chatP{width:88vw;height:50vh}
+  #loginP .lgCard{width:96vw;max-width:340px;padding:20px;border-radius:14px}
+  #charP .chBody{flex-direction:column;align-items:center}
+  #chrC{width:160px;height:200px}
+  .chCtl{width:95%}
+}
+@media (max-width:480px) and (orientation:landscape){
+  .ab{width:34px;height:34px;font-size:9px;border-radius:8px}
+  #bS{bottom:70px;right:85px}
+  #bJ{bottom:70px;right:42px}
+  #bI{bottom:70px;right:0px}
+  #bB{bottom:36px;right:85px}
+  #bF{bottom:36px;right:42px}
+  #bV{bottom:36px;right:0px}
+#bM{bottom:3px;right:85px}
+#bC2{bottom:3px;right:42px}
+#bCh{bottom:3px;right:0px}
+#bR{right:85px;bottom:105px}
+#bA{right:42px;bottom:105px}
+#bSv{right:0px;bottom:105px}
+  #jA{width:90px;height:90px}
+  #jB{width:38px;height:38px}
+  #hud{font-size:9px}
+  #hpBar,#spBar{width:60px;height:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- 手机横屏提示 -->
+<div id="landTip" onclick="this.style.display='none'"><div class="icon">📱</div><div>为获得最佳体验，建议横屏游玩（竖屏也可正常游戏）</div><div style="font-size:12px;opacity:.6;margin-top:4px">点击任意处关闭</div><span class="x">✕</span></div>
+
+<!-- 主画布 -->
+<canvas id="c"></canvas>
+
+<!-- 加载界面 -->
+<div id="ld">
+  <h2>遗梦</h2>
+  <div class="sub">1:1 中国地图 · MMO开放世界</div>
+  <div id="lF" style="width:240px;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:12px">
+    <div id="lFi" style="height:100%;width:0%;background:linear-gradient(90deg,#ffd700,#ff8c00);border-radius:3px;transition:width .3s"></div>
+  </div>
+  <div id="lT">正在初始化...</div>
+</div>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="hpBar"><div id="hpB"></div><div id="hpT">HP 100/100</div></div>
+  <div id="spBar"><div id="spB"></div><div id="spT">体力 100/100</div></div>
+  <div id="cT">北京</div>
+  <div id="gT">116.40°E 39.90°N</div>
+  <div id="tT">08:00 春</div>
+  <div id="clT">职业: 自由人</div>
+  <div id="nmT"></div>
+  <div id="ecoT">💰 ¥1000</div>
+  <div id="goldT" style="color:#ffd700;font-size:13px;margin-top:1px">🪙100</div>
+  <div id="wanted"></div>
+</div>
+
+<!-- 小地图 -->
+<div id="mm"><canvas id="mc" width="180" height="150"></canvas></div>
+
+<!-- 地图切换 -->
+<button id="mtB" onclick="toggleMap()">🛰️ 卫星</button>
+
+<!-- 任务列表 -->
+<div id="qL"></div>
+
+<!-- 互动提示 -->
+<div id="iP"></div>
+
+<!-- 摇杆 -->
+<div id="jA"><div id="jB"><div id="jT"></div></div></div>
+
+<!-- 动作按钮 -->
+<div id="bS" class="ab" onclick="inp.sprint=true" onmouseup="inp.sprint=false" ontouchstart="inp.sprint=true" ontouchend="inp.sprint=false">冲刺</div>
+<div id="bJ" class="ab" onclick="inp.jump=true;setTimeout(()=>inp.jump=false,100)" ontouchstart="inp.jump=true;setTimeout(()=>inp.jump=false,100)">跳跃</div>
+<div id="bI" class="ab" onclick="tryInteract()" ontouchstart="tryInteract()">互动</div>
+<div id="bB" class="ab" onclick="togBag()" ontouchstart="togBag()">包</div>
+<div id="bF" class="ab" onclick="togFace()" ontouchstart="togFace()">脸</div>
+<div id="bV" class="ab" onclick="togVehicle()" ontouchstart="togVehicle()">车</div>
+<div id="bM" class="ab" onclick="openNearShop()" ontouchstart="openNearShop()">商城</div>
+<div id="bC2" class="ab" onclick="openClass()" ontouchstart="openClass()">职业</div>
+<div id="bCh" class="ab" onclick="togChat()" ontouchstart="togChat()">聊</div>
+<div id="bPer" class="ab" onclick="openPer()" ontouchstart="openPer()">人</div>
+<div id="bR" class="ab" onclick="togRecharge()" ontouchstart="togRecharge()">💳</div>
+<div id="bA" class="ab" onclick="tryVehicle()" ontouchstart="tryVehicle()">骑行</div>
+<div id="bA" class="ab" onclick="attack()" ontouchstart="attack()">打</div>
+<div id="bSv" class="ab" onclick="openStreetView()" ontouchstart="openStreetView()">街景</div>
+
+<!-- 百度街景面板 -->
+<div id="svP">
+  <div id="svHead">
+    <span class="svT">🏙️ 真实街景</span>
+    <span id="svLoc"></span>
+    <span id="svAk" onclick="svSetAK()">🔑 配置AK</span>
+    <span id="svClose" onclick="closeStreetView()">✕</span>
+  </div>
+  <div id="svPano"><div id="svHint"></div></div>
+</div>
+
+<div id="jailP"><div class="je">🔒</div><div class="jb">你被逮捕入狱<br><span id="jailT">剩余 0s</span><br><span style="font-size:12px;opacity:.7">刑满后自动释放</span></div></div>
+<div id="downP"><div class="de">🤕</div><div class="db"><span id="downT">倒地 0s（等待救援）</span><br><span style="font-size:12px;opacity:.7">无人救援将被送医（损失部分金钱）</span></div></div>
+<div id="bC"></div>
+<div id="fC"></div>
+
+<!-- Toast -->
+<div id="tst"></div>
+
+<!-- 对话框 -->
+<div id="dO">
+  <div id="dI">
+    <div id="dA"></div>
+    <div id="dN"></div>
+    <div id="dJ"></div>
+    <div id="dT"></div>
+    <div id="dOs"></div>
+  </div>
+</div>
+
+<!-- 背包面板 -->
+<div id="bagP">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <span style="color:#ffd700;font-size:14px;font-weight:bold">🎒 背包</span>
+    <span onclick="togBag()" style="cursor:pointer;font-size:18px;opacity:.6">✕</span>
+  </div>
+  <div id="bagB"></div>
+</div>
+
+<!-- 捏脸面板 -->
+<div id="faceP">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <span style="color:#ffd700;font-size:14px;font-weight:bold">🎨 角色定制</span>
+    <span onclick="togFace()" style="cursor:pointer;font-size:18px;opacity:.6">✕</span>
+  </div>
+  <div id="faceB"></div>
+</div>
+
+<!-- 职业选择面板 -->
+<div id="classP">
+  <h3>🎯 选择职业</h3>
+  <div class="sub">不同职业拥有专属技能与初始资金</div>
+  <div id="classB"></div>
+  <div style="text-align:center;margin-top:10px"><span onclick="confirmClass()" style="cursor:pointer;background:rgba(255,215,0,.25);border:1px solid rgba(255,215,0,.5);color:#ffd700;padding:8px 24px;border-radius:10px;font-size:13px">确认</span></div>
+</div>
+
+<!-- 聊天面板 -->
+<div id="chatP">
+  <div id="chatH">
+    <div class="ctab on" id="ctab_near" onclick="switchChat('near')">附近</div>
+    <div class="ctab" id="ctab_world" onclick="switchChat('world')">世界</div>
+  </div>
+  <div id="chatL"></div>
+  <div style="display:flex;border-top:1px solid rgba(255,255,255,.1)">
+    <input id="chatI" placeholder="说点什么... (回车发送)" maxlength="80" onkeydown="if(event.key==='Enter')chatSend()">
+    <button id="chatSend" onclick="chatSend()">发送</button>
+  </div>
+</div>
+
+<!-- 商店面板 -->
+<div id="shopP">
+  <h3><span id="shopTitle">🛒 商店</span><span onclick="togShop()" style="cursor:pointer;font-size:18px;opacity:.6">✕</span></h3>
+  <div class="sbal">余额: <span id="shopMoney">¥0</span> | 金币: <span id="shopGold">🪙0</span></div>
+  <div id="shopB"></div>
+</div>
+
+<!-- 充值面板 -->
+<div id="rechargeP">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="color:#ffd700;font-size:15px;font-weight:bold">💳 充值中心</span>
+    <span onclick="togRecharge()" style="cursor:pointer;font-size:18px;opacity:.6">✕</span>
+  </div>
+  <div style="font-size:12px;opacity:.7;margin-bottom:10px">1元 = 10金币 · 充值即时到账</div>
+  <div class="rcTop"><span>当前金币:</span><span id="rcGold" style="color:#ffd700;font-weight:bold">🪙 0</span></div>
+  <div id="rechargeB"></div>
+</div>
+
+<!-- 载具面板 -->
+<div id="vehicleP">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="color:#ffd700;font-size:15px;font-weight:bold">🚗 我的载具</span>
+    <span onclick="togVehicle()" style="cursor:pointer;font-size:18px;opacity:.6">✕</span>
+  </div>
+  <div id="vehicleB"></div>
+  <div style="margin-top:10px;font-size:12px;opacity:.6">更多载具可前往<a style="color:#ffd700;cursor:pointer;text-decoration:underline" onclick="togVehicle();openNearShop()">车行</a>购买</div>
+</div>
+
+<!-- 登录界面 - 模仿王者荣耀/和平精英风格 -->
+<div id="loginP">
+  <div class="loginBgFx" id="loginBgFx"></div>
+  <div class="loginMain">
+    <div class="loginLogo">遗梦</div>
+    <div class="loginAppName">遗梦</div>
+    <div class="loginAppSub">1:1 中国地图 · MMO开放世界</div>
+    <div class="loginBtnGroup">
+      <button class="loginBtn wxBtn" onclick="oauthStart('wx')">
+        <span class="lbIcon">💬</span><span class="lbText">微信登录</span>
+      </button>
+      <button class="loginBtn qqBtn" onclick="oauthStart('qq')">
+        <span class="lbIcon">🐧</span><span class="lbText">QQ登录</span>
+      </button>
+      <button class="loginBtn appleBtn" onclick="oauthStart('apple')">
+        <span class="lbIcon">🍎</span><span class="lbText">Apple登录</span>
+      </button>
+    </div>
+    <div class="loginGuestRow">
+      <div class="loginGuest" onclick="doGuest()">👤 游客模式进入</div>
+    </div>
+    <div class="loginAccs" id="lgAccs"></div>
+    <div class="loginTip" id="loginTip"></div>
+  </div>
+</div>
+
+<!-- 第三方授权弹窗 - 模仿微信/QQ真实OAuth授权页 -->
+<div id="oauthP">
+  <div class="oaCard" id="oaCard">
+    <div class="oaHeader">
+      <div class="oaLogo" id="oaLogo"></div>
+      <div class="oaAppName" id="oaAppName">遗梦</div>
+      <div class="oaAuthTip" id="oaAuthTip">申请获取你的公开信息（昵称、头像）</div>
+    </div>
+    <div class="oaDivider"></div>
+    <div class="oaBody">
+      <div class="oaQR" id="oaQR">
+        <canvas id="oaQRCanvas" width="160" height="160"></canvas>
+        <div class="oaScanning" id="oaScanning">
+          <div style="font-size:28px;margin-bottom:4px">✅</div>
+          <div>授权成功</div>
+          <div class="oaScanLine"></div>
+          <div class="oaScanProgress"><div class="oaScanBar" id="oaScanBar"></div></div>
+          <div class="oaScanText" id="oaScanText">正在登录...</div>
+        </div>
+      </div>
+      <div class="oaQRText" id="oaQRText">请使用微信扫描二维码登录</div>
+    </div>
+    <div class="oaFooter">
+      <button class="oaBtn oaCancel" onclick="oauthCancel()">取消</button>
+      <button class="oaBtn oaConfirm" onclick="oauthConsent()" id="oaConfirmBtn">确认登录</button>
+    </div>
+  </div>
+</div>
+
+<!-- 人物模块：角色创建 (§7) -->
+<div id="charP">
+  <div class="chHead">🧍 创建你的角色</div>
+  <div class="chBody">
+    <canvas id="chrC" width="220" height="280"></canvas>
+    <div class="chCtl">
+      <div class="fr"><label>昵称</label><input id="chName" maxlength="12" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.35);color:#fff;font-size:13px;outline:none"></div>
+      <div class="fr"><label>性别</label><div style="flex:1;display:flex;gap:6px"><span id="gM" class="gSel on" onclick="setGender('m')">男</span><span id="gF" class="gSel" onclick="setGender('f')">女</span></div></div>
+      <div class="chTabs">
+        <span id="ct_photo" class="ct" onclick="chTab('photo')">📷 拍照</span>
+        <span id="ct_face" class="ct on" onclick="chTab('face')">捏脸</span>
+        <span id="ct_body" class="ct" onclick="chTab('body')">体型</span>
+        <span id="ct_hair" class="ct" onclick="chTab('hair')">发型</span>
+        <span id="ct_col" class="ct" onclick="chTab('col')">颜色</span>
+      </div>
+      <div id="chB" class="chB"></div>
+    </div>
+  </div>
+  <div class="chFoot">
+    <span class="cb2" onclick="randomChar()">🎲 随机</span>
+    <span class="cb2" onclick="resetChar()">↺ 重置</span>
+    <span class="cb2 go" onclick="saveChar()">进入遗梦 ➜</span>
+  </div>
+</div>
+
+<!-- 拍照生成弹窗 -->
+<div id="photoP">
+  <div class="photoBox">
+    <div style="color:#ffd700;font-size:16px;font-weight:bold;margin-bottom:12px">📷 拍照生成你的角色</div>
+    <div style="position:relative;display:inline-block">
+      <video id="photoVideo" autoplay playsinline></video>
+      <div class="scanOverlay" id="scanOverlay" style="display:none">
+        <div class="scanLine"></div>
+        <div class="scanCorners">
+          <div class="scanCorner tl"></div><div class="scanCorner tr"></div>
+          <div class="scanCorner bl"></div><div class="scanCorner br"></div>
+        </div>
+      </div>
+    </div>
+    <canvas id="photoCapCanvas" width="280" height="280"></canvas>
+    <div class="photoHint" id="photoHint">请正对摄像头，保持面部居中</div>
+    <div class="photoBtns">
+      <span class="pb snap" id="photoSnapBtn" onclick="photoSnap()">📸 拍照</span>
+      <span class="pb" onclick="photoCancel()">取消</span>
+    </div>
+    <div class="photoResult" id="photoResult" style="display:none">
+      <h4>✅ 面部特征已提取</h4>
+      <div id="photoResultRows"></div>
+    </div>
+  </div>
+</div>
+<div id="perP">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span style="color:#ffd700;font-size:15px;font-weight:bold">🧍 我的角色</span>
+    <span onclick="closePer()" style="cursor:pointer;font-size:18px;opacity:.6">✕</span>
+  </div>
+  <div id="perB"></div>
+  <div>
+    <span class="pbtn" onclick="togFace()">编辑外观</span>
+    <span class="pbtn" onclick="logout()">切换账号</span>
+  </div>
+</div>
+
+<script src="china-map-data.js?v=5"></script>
+<script src="game.js?v=5"></script>
+</body>
+</html>

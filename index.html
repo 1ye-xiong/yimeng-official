@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="遗梦 - 带你走遍中国的每一个地方，看遍中国的大好河山。1:1真实中国地图MMO开放世界游戏">
+<meta name="keywords" content="遗梦,游戏,中国地图,MMO,开放世界,中华文化,国风游戏">
+<meta name="author" content="遗梦开发团队">
+<meta property="og:title" content="遗梦 - 1:1中国地图MMO开放世界">
+<meta property="og:description" content="带你走遍中国的每一个地方，看遍中国的大好河山">
+<meta property="og:type" content="website">
+<title>遗梦 - 1:1中国地图MMO开放世界</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;background:linear-gradient(135deg,#0a0a1a 0%,#1a1a3a 50%,#0a0a1a 100%);color:#e0e0e0;min-height:100vh;overflow-x:hidden}
+.bg-fx{position:fixed;inset:0;z-index:0;overflow:hidden}
+.bg-fx .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0;animation:twinkle 3s infinite}
+@keyframes twinkle{0%,100%{opacity:0}50%{opacity:.7}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.container{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:60px 24px}
+.hero{text-align:center;padding:80px 20px}
+.logo{width:120px;height:120px;border-radius:30px;background:linear-gradient(135deg,#ffd700,#ff8c00);margin:0 auto 24px;display:flex;align-items:center;justify-content:center;font-size:54px;font-weight:bold;color:#fff;box-shadow:0 8px 40px rgba(255,215,0,.4);animation:float 4s ease-in-out infinite}
+h1{font-size:64px;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;font-weight:bold}
+.tagline{font-size:20px;opacity:.85;margin-bottom:12px;letter-spacing:2px}
+.subtag{font-size:14px;opacity:.5;letter-spacing:3px;margin-bottom:48px}
+.cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-bottom:80px}
+.btn{display:inline-block;padding:14px 36px;border-radius:30px;font-size:16px;font-weight:bold;text-decoration:none;transition:all .2s;cursor:pointer;border:none}
+.btn-primary{background:linear-gradient(135deg,#07c160,#1aad19);color:#fff;box-shadow:0 4px 20px rgba(7,193,96,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(7,193,96,.6)}
+.btn-secondary{background:linear-gradient(135deg,#12b7f5,#0ea0e9);color:#fff;box-shadow:0 4px 20px rgba(18,183,245,.4)}
+.btn-secondary:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(18,183,245,.6)}
+.btn-tertiary{background:rgba(255,255,255,.08);color:#ffd700;border:1px solid rgba(255,215,0,.3)}
+.btn-tertiary:hover{background:rgba(255,215,0,.15)}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-bottom:80px}
+.feature{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:32px 24px;text-align:center;transition:all .3s}
+.feature:hover{background:rgba(255,255,255,.08);transform:translateY(-4px);border-color:rgba(255,215,0,.3)}
+.feature .icon{font-size:48px;margin-bottom:16px}
+.feature h3{font-size:18px;color:#ffd700;margin-bottom:12px}
+.feature p{font-size:14px;opacity:.7;line-height:1.7}
+.section-title{text-align:center;font-size:32px;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:48px;font-weight:bold}
+.cities{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:80px}
+.city{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:20px 12px;text-align:center;transition:all .2s;cursor:pointer}
+.city:hover{background:rgba(255,215,0,.1);border-color:rgba(255,215,0,.4);transform:scale(1.05)}
+.city .flag{font-size:32px;margin-bottom:8px}
+.city .name{font-size:14px;color:#ffd700;font-weight:bold}
+.screenshots{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:80px}
+.shot{aspect-ratio:16/9;background:linear-gradient(135deg,rgba(255,215,0,.1),rgba(255,140,0,.05));border:1px solid rgba(255,255,255,.1);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:64px;position:relative;overflow:hidden}
+.shot::after{content:attr(data-label);position:absolute;bottom:12px;left:12px;right:12px;font-size:13px;color:#ffd700;opacity:.7}
+.about{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:48px 36px;margin-bottom:60px;line-height:1.9}
+.about p{margin-bottom:18px;font-size:15px;opacity:.85}
+.about p:last-child{margin-bottom:0}
+.footer{text-align:center;padding:40px 20px;opacity:.6;font-size:13px;border-top:1px solid rgba(255,255,255,.08)}
+.footer a{color:#ffd700;text-decoration:none;margin:0 8px}
+.footer a:hover{text-decoration:underline}
+@media(max-width:768px){
+h1{font-size:42px}
+.tagline{font-size:16px}
+.logo{width:90px;height:90px;font-size:42px}
+.hero{padding:40px 20px}
+.cta{flex-direction:column;align-items:center}
+.btn{width:100%;max-width:280px}
+}
+</style>
+</head>
+<body>
+<div class="bg-fx" id="bgFx"></div>
+<div class="container">
+  <section class="hero">
+    <div class="logo">遗</div>
+    <h1>遗梦</h1>
+    <p class="tagline">带你走遍中国的每一个地方，看遍中国的大好河山</p>
+    <p class="subtag">1:1 真实中国地图 · MMO 开放世界</p>
+    <div class="cta">
+      <a href="./mmo.html" class="btn btn-primary">💬 微信登录开始游戏</a>
+      <a href="./mmo.html" class="btn btn-secondary">🐧 QQ登录开始游戏</a>
+      <a href="#about" class="btn btn-tertiary">了解更多 →</a>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">游戏特色</h2>
+    <div class="features">
+      <div class="feature">
+        <div class="icon">🗺️</div>
+        <h3>1:1 真实地图</h3>
+        <p>采用真实的中国地理数据，1:1还原960万平方公里山河湖海，每一寸土地都可探索。</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🌆</div>
+        <h3>现实生活模拟</h3>
+        <p>学生、商人、上班族、自由职业者，扮演真实角色体验百味人生。</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🏔️</div>
+        <h3>真实地形</h3>
+        <p>从青藏高原到东部平原，从黄岗山到鄱阳湖，亲身丈量中国大好河山。</p>
+      </div>
+      <div class="feature">
+        <div class="icon">💬</div>
+        <h3>智能 NPC</h3>
+        <p>与出租车司机、便利店老板、医生、老师等真实人物对话，感受人间烟火。</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🚇</div>
+        <h3>城市漫游</h3>
+        <p>北京、上海、广州、成都、武汉……穿梭于十大城市之间，体验都市生活。</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🛒</div>
+        <h3>现实经济</h3>
+        <p>矿泉水、面包、共享单车、地铁卡、T恤、运动鞋……经营你的日常生活。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">探索城市</h2>
+    <div class="cities">
+      <div class="city"><div class="flag">🏛️</div><div class="name">北京</div></div>
+      <div class="city"><div class="flag">🗼</div><div class="name">上海</div></div>
+      <div class="city"><div class="flag">🌴</div><div class="name">广州</div></div>
+      <div class="city"><div class="flag">🐼</div><div class="name">成都</div></div>
+      <div class="city"><div class="flag">🌊</div><div class="name">武汉</div></div>
+      <div class="city"><div class="flag">🏯</div><div class="name">西安</div></div>
+      <div class="city"><div class="flag">🌉</div><div class="name">杭州</div></div>
+      <div class="city"><div class="flag">🌸</div><div class="name">南京</div></div>
+      <div class="city"><div class="flag">🍜</div><div class="name">长沙</div></div>
+      <div class="city"><div class="flag">🎋</div><div class="name">南昌</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">关于遗梦</h2>
+    <div class="about" id="about">
+      <p><strong>遗梦</strong>是一款以中国真实地理为蓝本的 MMO 开放世界网页游戏。整个游戏世界以 1:1 的比例还原了中国的山河湖海 —— 长江、黄河、鄱阳湖、青藏高原、黄岗山、五岳名山都真实可探索。</p>
+      <p>游戏中没有奇幻的怪兽、等级、装备和血条。取而代之的是<strong>真实生活的模拟</strong>：你可以扮演学生去图书馆学习，扮演商人去进货卖货，扮演上班族挤地铁通勤，扮演自由职业者背着相机走街串巷。每个职业都有自己的日常与故事。</p>
+      <p>游戏里的人物不再是抽象的"玩家"，而是<strong>真实的中国城市居民</strong>。你会遇到开便利店的李阿姨、跑出租的王师傅、教书的张老师、做水果生意的陈大叔、坐诊的刘医生……和他们聊天，了解普通人的悲欢离合。</p>
+      <p>这是属于每一个中国人的虚拟世界。在这里，你可以从北京天安门出发，一路向南走到海南三亚；从东海之滨的上海出发，翻过秦岭到达成都平原；或者在鄱阳湖畔的南昌驻足，看夕阳洒在湖面上。</p>
+      <p><strong>遗梦</strong>，遗失的旧梦，遗忘的故土。我们用代码重新搭建了一个中国，让你重新发现那些身边的美。</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>© 2026 遗梦开发团队 · 1:1 中国地图 MMO 开放世界</p>
+    <p style="margin-top:8px">
+      <a href="./mmo.html">开始游戏</a>·
+      <a href="#about">关于</a>·
+      <a href="mailto:contact@yimeng.game">联系我们</a>
+    </p>
+    <p style="margin-top:16px;opacity:.4">ICP备案号待补充 · 本游戏纯属虚构 · 场景数据来源于公开地理信息</p>
+  </div>
+</div>
+
+<script>
+// 背景星空
+const bgFx=document.getElementById('bgFx');
+for(let i=0;i<80;i++){
+  const s=document.createElement('div');s.className='star';
+  s.style.left=Math.random()*100+'%';
+  s.style.top=Math.random()*100+'%';
+  s.style.animationDelay=Math.random()*3+'s';
+  s.style.width=s.style.height=(Math.random()*2+1)+'px';
+  bgFx.appendChild(s);
+}
+
+// 城市点击
+document.querySelectorAll('.city').forEach(c=>{
+  c.addEventListener('click',()=>{
+    location.href='./mmo.html?city='+encodeURIComponent(c.querySelector('.name').textContent);
+  });
+});
+</script>
+</body>
+</html>

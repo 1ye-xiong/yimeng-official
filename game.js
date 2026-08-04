@@ -8,11 +8,7 @@ addEventListener('resize',resize);resize();
 // ========== 3D人物渲染层 (§0-3D) ========== 
 let glScene,glCamera,glRenderer,glLight,gl3DReady=false;
 function init3D(){
-  if(!window.THREE){
-    console.log('⏳ 等待Three.js加载...');
-    window.addEventListener('three-ready',init3D,{once:true});
-    return;
-  }
+  if(typeof THREE==='undefined'){console.warn('Three.js未加载，跳过3D');return}
   const gl=document.getElementById('gl');
   if(!gl){console.warn('#gl canvas不存在');return}
   glScene=new THREE.Scene();
@@ -23,19 +19,17 @@ function init3D(){
   glRenderer.setSize(W,H);
   glRenderer.setPixelRatio(D);
   glRenderer.setClearColor(0x000000,0);
-  // 光照
   glLight=new THREE.DirectionalLight(0xffffff,1.2);
   glLight.position.set(100,200,300);
   glScene.add(glLight);
   glScene.add(new THREE.AmbientLight(0xffffff,0.6));
-  // 测试球体（玩家位置标记）
   const geo=new THREE.SphereGeometry(30,32,32);
   const mat=new THREE.MeshStandardMaterial({color:0xff6600,metalness:0.1,roughness:0.5});
   const sphere=new THREE.Mesh(geo,mat);
   sphere.name='testSphere';
   glScene.add(sphere);
   gl3DReady=true;
-  console.log('✅ 3D人物渲染层已初始化 (Three.js r'+THREE.REVISION+')');
+  console.log('3D人物渲染层已初始化 Three.js r'+THREE.REVISION);
 }
 init3D();
 

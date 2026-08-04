@@ -2,11 +2,12 @@
 const cv=document.getElementById('c'),cx=cv.getContext('2d');
 const mc=document.getElementById('mc'),mx=mc.getContext('2d');
 let W,H,D;
+// 3D人物渲染层变量（必须在resize()之前声明，避免TDZ）
+let glScene,glCamera,glRenderer,glLight,gl3DReady=false;
 function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;cv.style.width=W+'px';cv.style.height=H+'px';cx.setTransform(D,0,0,D,0,0);if(glRenderer){glRenderer.setSize(W,H);glRenderer.setPixelRatio(D);glCamera.left=-W/2;glCamera.right=W/2;glCamera.top=H/2;glCamera.bottom=-H/2;glCamera.updateProjectionMatrix()}}
 addEventListener('resize',resize);resize();
 
 // ========== 3D人物渲染层 (§0-3D) ========== 
-let glScene,glCamera,glRenderer,glLight,gl3DReady=false;
 function init3D(){
   if(typeof THREE==='undefined'){console.warn('Three.js未加载，跳过3D');return}
   const gl=document.getElementById('gl');

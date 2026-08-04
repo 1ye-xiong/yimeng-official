@@ -2,8 +2,54 @@
 const cv=document.getElementById('c'),cx=cv.getContext('2d');
 const mc=document.getElementById('mc'),mx=mc.getContext('2d');
 let W,H,D;
-function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;cv.style.width=W+'px';cv.style.height=H+'px';cx.setTransform(D,0,0,D,0,0)}
+function resize(){D=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*D;cv.height=H*D;cv.style.width=W+'px';cv.style.height=H+'px';cx.setTransform(D,0,0,D,0,0);if(glRenderer){glRenderer.setSize(W,H);glRenderer.setPixelRatio(D);glCamera.left=-W/2;glCamera.right=W/2;glCamera.top=H/2;glCamera.bottom=-H/2;glCamera.updateProjectionMatrix()}}
 addEventListener('resize',resize);resize();
+
+// ========== 3D人物渲染层 (§0-3D) ========== 
+let glScene,glCamera,glRenderer,glLight,gl3DReady=false;
+function init3D(){
+  if(!window.THREE){
+    console.log('⏳ 等待Three.js加载...');
+    window.addEventListener('three-ready',init3D,{once:true});
+    return;
+  }
+  const gl=document.getElementById('gl');
+  if(!gl){console.warn('#gl canvas不存在');return}
+  glScene=new THREE.Scene();
+  glCamera=new THREE.OrthographicCamera(-W/2,W/2,H/2,-H/2,-1000,1000);
+  glCamera.position.set(0,0,500);
+  glCamera.lookAt(0,0,0);
+  glRenderer=new THREE.WebGLRenderer({canvas:gl,alpha:true,antialias:true});
+  glRenderer.setSize(W,H);
+  glRenderer.setPixelRatio(D);
+  glRenderer.setClearColor(0x000000,0);
+  // 光照
+  glLight=new THREE.DirectionalLight(0xffffff,1.2);
+  glLight.position.set(100,200,300);
+  glScene.add(glLight);
+  glScene.add(new THREE.AmbientLight(0xffffff,0.6));
+  // 测试球体（玩家位置标记）
+  const geo=new THREE.SphereGeometry(30,32,32);
+  const mat=new THREE.MeshStandardMaterial({color:0xff6600,metalness:0.1,roughness:0.5});
+  const sphere=new THREE.Mesh(geo,mat);
+  sphere.name='testSphere';
+  glScene.add(sphere);
+  gl3DReady=true;
+  console.log('✅ 3D人物渲染层已初始化 (Three.js r'+THREE.REVISION+')');
+}
+init3D();
+
+function render3D(){
+  if(!gl3DReady)return;
+  // 测试球体：跟随玩家屏幕位置
+  const sphere=glScene.getObjectByName('testSphere');
+  if(sphere){
+    const ps=w2s(P.x,P.y);
+    // Canvas2D坐标→Three.js坐标：X居中，Y翻转
+    sphere.position.set(ps.x-W/2,-(ps.y-H/2),0);
+  }
+  glRenderer.render(glScene,glCamera);
+}
 
 // ========== API 后端连接配置 (§12) ==========
 // 部署到真实域名时，API 自动指向同源（location.origin），无需手动配置；
@@ -762,7 +808,7 @@ for(let i=0;i<chinaBorder.length;i++){const[tx,ty]=geo2tile(chinaBorder[i][0],ch
 cx.closePath();cx.stroke();
 drawMM()}
 
-function loop(now){const dt=Math.min((now-lt)/1000,.05);lt=now;update(dt);render();requestAnimationFrame(loop)}
+function loop(now){const dt=Math.min((now-lt)/1000,.05);lt=now;update(dt);render();render3D();requestAnimationFrame(loop)}
 
 // ========== 账号 / 登录注册 / 第三方授权 (§3.1) ==========
 const LS_ACC='hx_accounts',LS_SES='hx_sessions',LS_CUR='hx_cur',LS_DEV='hx_device';
